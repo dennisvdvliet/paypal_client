@@ -19,8 +19,8 @@ module PaypalClient
 
     def self.build
       @client ||= Client.new(
-        client_id: ENV.fetch('PAYPAL_CLIENT_ID', 'AWb7Od2MP_gLYwBjOgBfcHmRa5UNjOI0G1hG1sbbED7MZRcCgqosujFUxTHeSs8LWVDkCAQUopU53WWS'),
-        client_secret: ENV.fetch('PAYPAL_CLIENT_SECRET', 'EBpwPbeqFwSly6IGqBEpxBcrU8VTVB-voFYcMqmqTbf3SERtnNlgOk8UnCRWwRj29cFG3wzWFFHI3u0q'),
+        client_id: ENV.fetch('PAYPAL_CLIENT_ID'),
+        client_secret: ENV.fetch('PAYPAL_CLIENT_SECRET'),
         sandbox: ENV.fetch('PAYPAL_SANDBOX', true),
         cache: ActiveSupport::Cache::MemoryStore.new,
         version: VERSION

@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'API Client for the PayPal REST API'
   spec.description   = 'Faraday based API client for the PayPal REST API. Includes support for saving the authentication token and limited release endpoints.'
-  spec.homepage      = 'http://gemwebsite'
+  spec.homepage      = 'https://github.com/dennisvdvliet/paypal_client'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
