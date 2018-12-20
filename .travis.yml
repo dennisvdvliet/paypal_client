@@ -4,6 +4,10 @@ rvm:
   - 2.3.8
   - 2.4.5
   - 2.5.3
+env:
+  global:
+    - PAYPAL_CLIENT_ID=paypal_client_id
+    - PAYPAL_CLIENT_SECRET=paypal_client_secret
 before_install: gem install bundler -v 1.16.1
 matrix:
   fast_finish: true
