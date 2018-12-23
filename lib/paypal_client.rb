@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'paypal_client/version'
+require 'paypal_client/errors'
 require 'active_support/cache'
 
 module PaypalClient
@@ -38,12 +39,13 @@ module PaypalClient
 
     def connection
       @conn ||= Faraday.new(url: base_url) do |faraday|
+        faraday.use PaypalClient::Errors::Middleware
+
         faraday.headers = default_headers
         faraday.response @logger if @logger
         faraday.request  :json
-        faraday.response :json, parser_options: { symbolize_names: true }
+        faraday.response :json, content_type: /\bjson$/, parser_options: { symbolize_names: true }
 
-        faraday.use ErrorMiddleware
         faraday.adapter *adapter
       end
     end
@@ -100,21 +102,6 @@ module PaypalClient
 
     def adapter
       Faraday.default_adapter
-    end
-  end
-
-  class ResponseError < StandardError; end
-  class NotFound < ResponseError; end
-
-  class ErrorMiddleware < Faraday::Response::Middleware
-    ERROR_MAP = {
-      404 => NotFound
-    }.freeze
-
-    def on_complete(response)
-      key = response[:status].to_i
-      raise ERROR_MAP[key], response if ERROR_MAP.key? key
-      raise ResponseError, response if response.status >= 400
     end
   end
 end

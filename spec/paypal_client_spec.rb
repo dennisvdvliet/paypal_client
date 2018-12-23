@@ -18,13 +18,17 @@ RSpec.describe PaypalClient::Client do
   end
   let(:client) { described_class.new(**params) }
 
+  let(:response_headers) do
+    { 'Content-Type' => 'application/json' }
+  end
+
   before do
     allow(client).to receive(:adapter).and_return([:test, stubs])
     cache.clear
   end
 
   describe '.build' do
-    it 'returns an instance of Nu::Util::Paypal::Client' do
+    it 'returns an instance of PaypalClient::Client' do
       expect(PaypalClient::Client.build).to be_a(PaypalClient::Client)
     end
   end
@@ -63,11 +67,14 @@ RSpec.describe PaypalClient::Client do
       }
     end
 
+    let(:response_headers) do
+      { 'Content-Type' => 'application/json' }
+    end
     let(:headers) { {} }
     let(:body) { 'grant_type=client_credentials' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('/v1/oauth2/token', body, headers) { |_env| [200, {}, response.to_json] }
+        stub.post('/v1/oauth2/token', body, headers) { |_env| [200, response_headers, response.to_json] }
       end
     end
 
@@ -125,14 +132,14 @@ RSpec.describe PaypalClient::Client do
     context 'when invalid credentials supplied' do
       let(:stubs) do
         Faraday::Adapter::Test::Stubs.new do |stub|
-          stub.post('/v1/oauth2/token', body, headers) { |_env| [401, {}, {}.to_json] }
+          stub.post('/v1/oauth2/token', body, headers) { |_env| [401, response_headers, {}.to_json] }
         end
       end
 
       it 'does NOT save token in cache and raises error' do
         expect(cache).to_not receive(:fetch)
 
-        expect { client.auth_token }.to raise_error PaypalClient::ResponseError
+        expect { client.auth_token }.to raise_error PaypalClient::Errors::AuthenticationFailure
       end
     end
 
@@ -142,6 +149,57 @@ RSpec.describe PaypalClient::Client do
         client.auth_token
 
         client.auth_token(force: true)
+      end
+    end
+  end
+  describe 'error handling' do
+    let(:stubs) do
+      Faraday::Adapter::Test::Stubs.new do |stub|
+        stub.get('/v1/payments/payment') { |_env| [response_code, response_headers, response] }
+      end
+    end
+
+    before do
+      allow(client).to receive(:auth_token).and_return('token')
+    end
+
+    let(:response) { { result: true } }
+    let(:response_code) { 200 }
+
+    context 'when response contains invalid JSON' do
+      let(:response) do
+        'invalid-json'
+      end
+
+      it 'raises a Faraday::ParsingError' do
+        expect { client.get('/payments/payment') }.to raise_error Faraday::ParsingError
+      end
+    end
+
+    describe '4xx' do
+      let(:response) do
+        JSON.parse(File.read(File.join('spec/fixtures/response-400-agreement-already-cancelled.json')), symbolize_names: true)
+      end
+      let(:response_code) { 400 }
+
+      it 'raises an PaypalClient::Errors::InvalidRequest' do
+        expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::InvalidRequest
+      end
+    end
+
+    describe '5xx' do
+      let(:response_code) { 500 }
+
+      it 'raises an PaypalClient::Errors::InternalServerError' do
+        expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::InternalServerError
+      end
+    end
+
+    describe 'Unknown http status code' do
+      let(:response_code) { 600 }
+
+      it 'raises an PaypalClient::Errors::Error' do
+        expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::Error
       end
     end
   end
@@ -155,12 +213,12 @@ RSpec.describe PaypalClient::Client do
       describe '#get' do
         let(:stubs) do
           Faraday::Adapter::Test::Stubs.new do |stub|
-            stub.get('/v1/payments/payment') { |_env| [401, {}, { ok: false }.to_json] }
+            stub.get('/v1/payments/payment') { |_env| [401, response_headers, { ok: false }.to_json] }
           end
         end
 
         it 'raises a Nu::Util::Paypal::ResponseError' do
-          expect { client.get('/payments/payment') }.to raise_error PaypalClient::ResponseError
+          expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::AuthenticationFailure
         end
       end
     end

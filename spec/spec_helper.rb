@@ -1,5 +1,12 @@
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/generated/'
+end
 require 'bundler/setup'
 require 'rspec'
+
+Bundler.require(:test)
 
 require 'paypal_client'
 RSpec.configure do |config|
