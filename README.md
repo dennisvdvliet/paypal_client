@@ -1,8 +1,8 @@
 # PaypalClient
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/paypal_client`. To experiment with that code, run `bin/console` for an interactive prompt.
+Ruby client for the [PayPal REST API](https://developer.paypal.com/docs/api/overview/). PayPal offers their own [SDK](https://github.com/paypal/PayPal-Ruby-SDK) but that felt a big heavy and was not seeing active development at the end of 2018.
 
-TODO: Delete this and the text above, and describe your gem
+PaypalClient is using Faraday to make the http calls to the Paypal API and uses ActiveSupport::Cache::MemoryStore to store the auth token required to make authenticated requests to Paypal [more info](https://developer.paypal.com/docs/api/overview/#authentication-and-authorization).
 
 ## Installation
 
@@ -22,7 +22,43 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+To [list payments](https://developer.paypal.com/docs/api/payments/v1/#payment_list)
+
+```ruby
+paypal_client = PaypalClient::Client.build
+response = paypal_client.get('/payments/payments').body
+response[:payments].each do |payment|
+  puts "Paypal payment with ID: #{payment[:id]}"
+end
+```
+
+`PaypalClient::Client.build` requires the following environment variables to be set:
+
+```shell
+PAYPAL_CLIENT_ID=<paypal_client_id>
+PAYPAL_CLIENT_SECRET=<paypal_client_secret>
+PAYPAL_SANDBOX=true
+```
+
+You can also configure the client using `PaypalClient::Client.new` as in the following example.
+
+```ruby
+paypal_client = PaypalClient::Client.new(
+  client_id: <paypal_client_id>,
+  client_secret: <paypal_client_secret>,
+  sandbox: true,
+  cache: Rails.cache,
+  version: 'v1'
+)
+```
+
+## Documentation
+
+TODO
+
+## Testing
+
+There is a good amount of unit testing in `spec/paypal_client_spec.rb`. To run those test **no** active Paypal Developer account is required. To run the tests in `spec/integration/integration_spec.rb` valid Paypal sandbox credentials are required.
 
 ## Development
 
@@ -32,8 +68,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/paypal_client. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/dennisvdvliet/paypal_client. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## Code of Conduct
 
-Everyone interacting in the PaypalClient project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/paypal_client/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the PaypalClient project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/dennisvdvliet/paypal_client/blob/master/CODE_OF_CONDUCT.md).
