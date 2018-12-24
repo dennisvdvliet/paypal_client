@@ -18,10 +18,14 @@ module PaypalClient
         else
           @error = response.reason_phrase if @error.nil?
         end
+        super(@error)
       end
 
-      def to_s
-
+      def inspect
+        extra = ""
+        extra << " status_code: #{status_code.inspect}" unless status_code.nil?
+        extra << " body: #{body.inspect}"               unless body.nil?
+        "#<#{self.class.name}: #{message}#{extra}>"
       end
     end
 
