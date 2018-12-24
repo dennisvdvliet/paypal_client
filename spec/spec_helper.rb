@@ -1,7 +1,9 @@
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/spec/'
-  add_filter '/generated/'
+if ENV.fetch('CI', false) == false
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/spec/'
+    add_filter '/generated/'
+  end
 end
 require 'bundler/setup'
 require 'rspec'
