@@ -12,8 +12,12 @@ module PaypalClient
         @status_code = response.status
         @body = response.body
 
-        @error = @body[:name] if @body.has_key?(:name)
-        @error_message = @body[:message] if @body.has_key?(:message)
+        if @body.class == Hash
+          @error = @body[:name] if @body.has_key?(:name)
+          @error_message = @body[:message] if @body.has_key?(:message)
+        else
+          @error = response.reason_phrase if @error.nil?
+        end
       end
 
       def to_s
