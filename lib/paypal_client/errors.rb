@@ -13,8 +13,8 @@ module PaypalClient
         @body = response.body
 
         if @body.class == Hash
-          @error = @body[:name] if @body.has_key?(:name)
-          @error_message = @body[:message] if @body.has_key?(:message)
+          @error = @body[:name] if @body.key?(:name)
+          @error_message = @body[:message] if @body.key?(:message)
         else
           @error = response.reason_phrase if @error.nil?
         end
@@ -22,7 +22,7 @@ module PaypalClient
       end
 
       def inspect
-        extra = ""
+        extra = ''
         extra << " status_code: #{status_code.inspect}" unless status_code.nil?
         extra << " body: #{body.inspect}"               unless body.nil?
         "#<#{self.class.name}: #{message}#{extra}>"
@@ -38,7 +38,7 @@ module PaypalClient
     class UnsupportedMediaType < Error; end
     class UnprocessableEntity < Error; end
     class RateLimitReached < Error; end
-    
+
     class InternalServerError < Error; end
     class ServiceUnavailable < Error; end
 

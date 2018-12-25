@@ -45,7 +45,7 @@ module PaypalClient
     # @param [Boolean] sandbox: true <description>
     # @param [String] version: <description>
     # @param [Logger] logger: nil <description>
-    
+
     def initialize(client_id:, client_secret:, cache:, sandbox: true, version:, logger: nil)
       @client_id = client_id
       @client_secret = client_secret
@@ -62,7 +62,7 @@ module PaypalClient
     # @param [Hash] headers Hash of custom request headers
     #
     # @return [Faraday::Response>] Faraday response. Call the `.body` method on it to access the response data.
-    
+
     def get(path, data = {}, headers = {})
       connection.get(merged_path(path), data, merged_headers(headers))
     end
@@ -74,7 +74,7 @@ module PaypalClient
     # @param [Hash] headers Hash of custom request headers
     #
     # @return [Faraday::Response>] Faraday response. Call the `.body` method on it to access the response data.
-    
+
     def post(path, data = {}, headers = {})
       connection.post(merged_path(path), data, merged_headers(headers))
     end
@@ -86,9 +86,9 @@ module PaypalClient
     # @param [Hash] headers Hash of custom request headers
     #
     # @return [Faraday::Response>] Faraday response. Call the `.body` method on it to access the response data.
-    
+
     def put(path, data = {}, headers = {})
-      connection.public_send(:get, merged_path(path), data, merged_headers(headers))
+      connection.put(merged_path(path), data, merged_headers(headers))
     end
 
     # Send a PATCH request to the Paypal API
@@ -120,7 +120,7 @@ module PaypalClient
     # @param [<Boolean>] force: false Forces a refresh of the token even if cached
     #
     # @return [<String>] Valid auth token from Paypal
-    # 
+    #
     def auth_token(force: false)
       return @cache.read(TOKEN_CACHE_KEY) if @cache.exist?(TOKEN_CACHE_KEY) && force == false
 
@@ -130,8 +130,6 @@ module PaypalClient
       end
     end
 
-    private
-
     def connection
       @conn ||= Faraday.new(url: base_url) do |faraday|
         faraday.use PaypalClient::Errors::Middleware
@@ -139,11 +137,15 @@ module PaypalClient
         faraday.headers = default_headers
         faraday.response @logger if @logger
         faraday.request  :json
-        faraday.response :json, content_type: /\bjson$/, parser_options: { symbolize_names: true }
+        faraday.response :json,
+                         content_type: /\bjson$/,
+                         parser_options: { symbolize_names: true }
 
         faraday.adapter *adapter
       end
     end
+
+    private
 
     def base_url
       @sandbox ? SANDBOX_URL : LIVE_URL
@@ -174,7 +176,8 @@ module PaypalClient
 
       response = connection.post(endpoint,
                                  'grant_type=client_credentials',
-                                 authorization: "Basic #{basic_auth}", "Content-Type": 'application/x-www-form-urlencoded')
+                                 authorization: "Basic #{basic_auth}",
+                                 "Content-Type": 'application/x-www-form-urlencoded')
       response.body
     end
 
