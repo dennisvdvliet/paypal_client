@@ -9,4 +9,5 @@ group :development, :test do
   gem 'pry'
   gem 'rubocop'
   gem 'simplecov'
+  gem 'yard'
 end
