@@ -1,30 +1,28 @@
+# frozen_string_literal: true
+
 require 'faraday_middleware'
 
 module PaypalClient
   module Errors
     class Error < StandardError
-      attr_reader :status_code
-      attr_reader :body
-      attr_reader :error
-      attr_reader :error_message
+      attr_reader :code
+      attr_reader :http_body
+      attr_reader :http_status
+      attr_reader :message
 
-      def initialize(response)
-        @status_code = response.status
-        @body = response.body
+      def initialize(message = nil, http_status: nil, http_body: nil, code: nil)
+        @message = message
+        @http_status = http_status
+        @http_body = http_body
+        @code = code
 
-        if @body.class == Hash
-          @error = @body[:name] if @body.key?(:name)
-          @error_message = @body[:message] if @body.key?(:message)
-        else
-          @error = response.reason_phrase if @error.nil?
-        end
         super(@error)
       end
 
       def inspect
         extra = ''
-        extra << " status_code: #{status_code.inspect}" unless status_code.nil?
-        extra << " body: #{body.inspect}"               unless body.nil?
+        extra << " status_code: #{http_status.inspect}" unless http_status.nil?
+        extra << " body: #{http_body.inspect}" unless http_body.nil?
         "#<#{self.class.name}: #{message}#{extra}>"
       end
     end
@@ -58,9 +56,18 @@ module PaypalClient
       }.freeze
 
       def on_complete(response)
-        key = response[:status].to_i
-        raise ERROR_MAP[key], response if ERROR_MAP.key? key
-        raise Error, response if response.status >= 400
+        status = response[:status].to_i
+        if status >= 400
+          error = ERROR_MAP.key?(status) ? ERROR_MAP[status] : Error
+
+          body = response.body
+          if body.class != Hash
+            error = Error.new('Something went wrong', http_status: status, http_body: body)
+          else
+            error = error.new(body[:message], code: body[:name], http_status: status, http_body: body)
+          end
+          raise error
+        end
       end
     end
   end

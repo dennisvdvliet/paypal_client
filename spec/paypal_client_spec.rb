@@ -185,6 +185,22 @@ RSpec.describe PaypalClient::Client do
       it 'raises an PaypalClient::Errors::InvalidRequest' do
         expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::InvalidRequest
       end
+
+      it 'has the code set to AGREEMENT_ALREADY_CANCELLED' do
+      	begin
+      		client.get('/payments/payment')
+      	rescue PaypalClient::Errors::InvalidRequest => e
+      		expect(e.code).to eq('AGREEMENT_ALREADY_CANCELLED')
+      	end
+      end
+
+       it 'has the message set to "The requested agreement is already canceled."' do
+      	begin
+      		client.get('/payments/payment')
+      	rescue PaypalClient::Errors::InvalidRequest => e
+      		expect(e.message).to eq('The requested agreement is already canceled.')
+      	end
+      end
     end
 
     describe '5xx' do
@@ -231,7 +247,7 @@ RSpec.describe PaypalClient::Client do
       describe '#get' do
         let(:stubs) do
           Faraday::Adapter::Test::Stubs.new do |stub|
-            stub.get('/v1/payments/payment') { |_env| [200, {}, { ok: true }.to_json] }
+            stub.get('/v1/payments/payment') { |_env| [200, response_headers, { ok: true }.to_json] }
           end
         end
 
