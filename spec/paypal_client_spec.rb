@@ -164,7 +164,7 @@ RSpec.describe PaypalClient::Client do
     end
 
     let(:response) { { result: true } }
-    let(:response_code) { 200 }
+    let(:response_code) { 400 }
 
     context 'when response contains invalid JSON' do
       let(:response) do
@@ -173,6 +173,29 @@ RSpec.describe PaypalClient::Client do
 
       it 'raises a Faraday::ParsingError' do
         expect { client.get('/payments/payment') }.to raise_error Faraday::ParsingError
+      end
+    end
+
+    context 'when body empty' do
+      let(:response) { '' }
+
+      it 'raises a PaypalClient::Errors::InvalidRequest' do
+        expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::InvalidRequest
+      end
+      it 'has the code set to 400' do
+        begin
+          client.get('/payments/payment')
+        rescue PaypalClient::Errors::InvalidRequest => e
+          expect(e.code).to eq('400')
+        end
+      end
+
+      it 'has the message set to "Something went wrong"' do
+        begin
+          client.get('/payments/payment')
+        rescue PaypalClient::Errors::InvalidRequest => e
+          expect(e.message).to eq('Something went wrong')
+        end
       end
     end
 
@@ -187,19 +210,60 @@ RSpec.describe PaypalClient::Client do
       end
 
       it 'has the code set to AGREEMENT_ALREADY_CANCELLED' do
-      	begin
-      		client.get('/payments/payment')
-      	rescue PaypalClient::Errors::InvalidRequest => e
-      		expect(e.code).to eq('AGREEMENT_ALREADY_CANCELLED')
-      	end
+        begin
+          client.get('/payments/payment')
+        rescue PaypalClient::Errors::InvalidRequest => e
+          expect(e.code).to eq('AGREEMENT_ALREADY_CANCELLED')
+        end
       end
 
-       it 'has the message set to "The requested agreement is already canceled."' do
-      	begin
-      		client.get('/payments/payment')
-      	rescue PaypalClient::Errors::InvalidRequest => e
-      		expect(e.message).to eq('The requested agreement is already canceled.')
-      	end
+      it 'has the message set to "The requested agreement is already canceled."' do
+        begin
+          client.get('/payments/payment')
+        rescue PaypalClient::Errors::InvalidRequest => e
+          expect(e.message).to eq('The requested agreement is already canceled.')
+        end
+      end
+
+      describe '401' do
+        # 401s have a different body structure
+        let(:response) do
+          { error: 'invalid_client', error_description: 'Client Authentication failed' }
+        end
+        let(:response_code) { 401 }
+
+        it 'has the code set to "invalid_client"' do
+          begin
+            client.get('/payments/payment')
+          rescue PaypalClient::Errors::AuthenticationFailure => e
+            expect(e.code).to eq('invalid_client')
+          end
+        end
+      end
+
+      describe '404' do
+        let(:response) do
+          ''
+        end
+        let(:response_code) { 404 }
+        let(:response_headers) do
+          {
+            'Content-Type' => 'application/json',
+            'reason-phrase' => 'Not found'
+          }
+        end
+
+        it 'has the code set to "404"' do
+          begin
+            client.get('/payments/payment')
+          rescue PaypalClient::Errors::ResourceNotFound => e
+            expect(e.code).to eq('404')
+          end
+        end
+
+        it 'raises PaypalClient::Errors::ResourceNotFound' do
+          expect { client.get('/payments/payment') }.to raise_error PaypalClient::Errors::ResourceNotFound
+        end
       end
     end
 

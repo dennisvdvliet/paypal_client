@@ -59,8 +59,8 @@ RSpec.describe 'Integration' do
         @webhook_duplicate = client.post('/notifications/webhooks', data)
       rescue PaypalClient::Errors::Error => error
         expect(error).to be_a(PaypalClient::Errors::InvalidRequest)
-        expect(error.error).to eq('WEBHOOK_URL_ALREADY_EXISTS')
-        expect(error.error_message).to eq('Webhook URL already exists')
+        expect(error.code).to eq('WEBHOOK_URL_ALREADY_EXISTS')
+        expect(error.message).to eq('Webhook URL already exists')
       end
 
       # Ensure webhook is in response

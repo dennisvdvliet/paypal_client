@@ -20,10 +20,10 @@ module PaypalClient
       end
 
       def inspect
-        extra = ''
-        extra << " status_code: #{http_status.inspect}" unless http_status.nil?
-        extra << " body: #{http_body.inspect}" unless http_body.nil?
-        "#<#{self.class.name}: #{message}#{extra}>"
+        extra = []
+        extra << " status_code: #{http_status}" unless http_status.nil?
+        extra << " body: #{http_body}" unless http_body.nil?
+        "#<#{self.class.name}: #{message}#{extra.join}>"
       end
     end
 
@@ -55,19 +55,34 @@ module PaypalClient
         503 => ServiceUnavailable
       }.freeze
 
+      ERRORS_WITHOUT_BODY = [404].freeze
+
       def on_complete(response)
         status = response[:status].to_i
         if status >= 400
           error = ERROR_MAP.key?(status) ? ERROR_MAP[status] : Error
 
           body = response.body
-          if body.class != Hash
-            error = Error.new('Something went wrong', http_status: status, http_body: body)
-          else
-            error = error.new(body[:message], code: body[:name], http_status: status, http_body: body)
-          end
-          raise error
+          raise error.new(get_error_message(response), code: get_error_code(response), http_status: status, http_body: body)
         end
+      end
+
+      private
+
+      def get_error_message(response)
+        body = response.body
+        return body[:message] if body.is_a?(Hash) && body.key?(:message)
+        return body[:error_description] if body.is_a?(Hash) && body.key?(:error_description)
+
+        'Something went wrong'
+      end
+
+      def get_error_code(response)
+        body = response.body
+        return body[:name] if body.is_a?(Hash) && body.key?(:name)
+        return body[:error] if body.is_a?(Hash) && body.key?(:error)
+
+        response.status.to_s
       end
     end
   end
