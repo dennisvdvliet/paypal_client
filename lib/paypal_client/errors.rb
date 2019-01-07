@@ -8,10 +8,10 @@ module PaypalClient
       attr_reader :code
       attr_reader :http_body
       attr_reader :http_status
-      attr_reader :message
+      attr_reader :error_message
 
-      def initialize(message = nil, http_status: nil, http_body: nil, code: nil)
-        @message = message
+      def initialize(error_message = nil, http_status: nil, http_body: nil, code: nil)
+        @error_message = error_message
         @http_status = http_status
         @http_body = http_body
         @code = code
@@ -24,6 +24,10 @@ module PaypalClient
         extra << " status_code: #{http_status}" unless http_status.nil?
         extra << " body: #{http_body}" unless http_body.nil?
         "#<#{self.class.name}: #{message}#{extra.join}>"
+      end
+
+      def message
+        "#{code}: #{error_message} (#{http_status})"
       end
     end
 

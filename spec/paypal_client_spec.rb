@@ -194,7 +194,7 @@ RSpec.describe PaypalClient::Client do
         begin
           client.get('/payments/payment')
         rescue PaypalClient::Errors::InvalidRequest => e
-          expect(e.message).to eq('Something went wrong')
+          expect(e.message).to eq('400: Something went wrong (400)')
         end
       end
     end
@@ -221,7 +221,7 @@ RSpec.describe PaypalClient::Client do
         begin
           client.get('/payments/payment')
         rescue PaypalClient::Errors::InvalidRequest => e
-          expect(e.message).to eq('The requested agreement is already canceled.')
+          expect(e.message).to eq('AGREEMENT_ALREADY_CANCELLED: The requested agreement is already canceled. (400)')
         end
       end
 
