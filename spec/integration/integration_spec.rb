@@ -60,7 +60,8 @@ RSpec.describe 'Integration' do
       rescue PaypalClient::Errors::Error => error
         expect(error).to be_a(PaypalClient::Errors::InvalidRequest)
         expect(error.code).to eq('WEBHOOK_URL_ALREADY_EXISTS')
-        expect(error.message).to eq('Webhook URL already exists')
+        expect(error.message).to eq('WEBHOOK_URL_ALREADY_EXISTS: Webhook URL already exists (400)')
+        expect(error.error_message).to eq('Webhook URL already exists')
       end
 
       # Ensure webhook is in response
