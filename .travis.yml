@@ -5,11 +5,12 @@ rvm:
 - 2.4.5
 - 2.5.3
 - 2.6.0
+- 2.7.0
 env:
 - ACTIVESUPPORT_VERSION='> 5'
 - ACTIVESUPPORT_VERSION=4.2.11
 
-before_install: gem install bundler -v 1.16.1
+before_install: gem install bundler
 matrix:
   fast_finish: true
 script:
