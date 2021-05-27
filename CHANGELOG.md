@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1 - 27-05-2021
+* Update faraday dependencies
+
 ## 0.4.0 - 02-03-2020
 * [#4] (https://github.com/dennisvdvliet/paypal_client/pull/4) Maintenance update
     - Update rake gem in response to: https://github.com/advisories/GHSA-jppv-gw3r-w3q8
