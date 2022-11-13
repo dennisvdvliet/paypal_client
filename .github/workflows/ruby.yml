@@ -18,7 +18,6 @@ permissions:
 
 env:
   ACTIVESUPPORT_VERSION: '> 5'
-  ACTIVESUPPORT_VERSION: '4.2.11'
 
 jobs:
   test:
