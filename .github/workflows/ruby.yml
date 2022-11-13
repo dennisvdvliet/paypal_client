@@ -19,6 +19,7 @@ permissions:
 env:
   ACTIVESUPPORT_VERSION: '> 5'
   PAYPAL_CLIENT_ID: paypal_id
+  PAYPAL_CLIENT_SECRET: so_secret
 
 jobs:
   test:
