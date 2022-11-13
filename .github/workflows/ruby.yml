@@ -18,6 +18,7 @@ permissions:
 
 env:
   ACTIVESUPPORT_VERSION: '> 5'
+  PAYPAL_CLIENT_ID: paypal_id
 
 jobs:
   test:
